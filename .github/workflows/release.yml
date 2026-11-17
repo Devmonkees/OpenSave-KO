@@ -1,4 +1,4 @@
-name: Release builds
+name: OpenSave-KO release builds
 
 on:
   push:
@@ -55,26 +55,6 @@ jobs:
           # which cannot carry the -beta suffix (see project.nsi).
           export OPENSAVE_VERSION="$V"
           wails build -nsis -ldflags "-X github.com/opensave/opensave/internal/version.Version=$V -X github.com/opensave/opensave/internal/version.BuildTime=$(date +%s)"
-      # Stamped with the same version and build time as the app.
-      #
-      # These were built with "-s -w" alone, so they carried whatever was
-      # hardcoded in internal/version and no build time at all. On a final
-      # release that value matches the tag, which is why it went unnoticed;
-      # on v2.3.0-beta.1 the published CLI reported itself as 2.3.0. A CLI
-      # that does not know it is a pre-release is not offered later betas,
-      # and is never offered the final either, since the version it claims
-      # is the one being released.
-      #
-      # The missing BuildTime matters separately: two peers on the SAME
-      # version decide whose binary is newer by comparing it.
-      - name: Build CLI + relay
-        shell: bash
-        run: |
-          V="${GITHUB_REF_NAME#v}"
-          LD="-s -w -X github.com/opensave/opensave/internal/version.Version=$V -X github.com/opensave/opensave/internal/version.BuildTime=$(date +%s)"
-          go build -ldflags="$LD" -o dist/opensave-cli.exe ./cmd/opensave-cli
-          go build -ldflags="$LD" -o dist/opensave-relay.exe ./cmd/opensave-relay
-
       # Fail loudly if the NSIS installer was skipped, and give it a stable
       # download name (the website's download buttons look for "Setup").
       - name: Verify + rename installer
@@ -140,9 +120,10 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: windows
+          if-no-files-found: error
           path: |
-            cmd/opensave-app/build/bin/*
-            dist/*
+            cmd/opensave-app/build/bin/OpenSave.exe
+            cmd/opensave-app/build/bin/OpenSave.Setup.exe
 
   linux:
     runs-on: ubuntu-latest
@@ -187,77 +168,13 @@ jobs:
           ./dist/opensave-cli completion fish > opensave-linux/completions/opensave.fish
           tar -czf opensave-linux-amd64.tar.gz opensave-linux
 
-          # arm64 CLI + relay, for a Raspberry Pi or ARM NAS acting as an
-          # always-on peer. No desktop app: the Wails build needs native
-          # WebKit, so this is the headless pair only (pure Go, cross-compiles
-          # cleanly with CGO off).
-          mkdir -p opensave-linux-arm64
-          CGO_ENABLED=0 GOARCH=arm64 go build -ldflags="$LD" \
-            -o opensave-linux-arm64/opensave-cli ./cmd/opensave-cli
-          CGO_ENABLED=0 GOARCH=arm64 go build -ldflags="$LD" \
-            -o opensave-linux-arm64/opensave-relay ./cmd/opensave-relay
-          cp packaging/man/opensave.1 opensave-linux-arm64/ 2>/dev/null || true
-          tar -czf opensave-linux-arm64.tar.gz opensave-linux-arm64
-
-      # Native packages, so `apt install ./opensave.deb` pulls the WebKitGTK
-      # runtime instead of the app installing and then failing to launch.
-      - name: Build .deb and .rpm
-        run: |
-          go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
-
-          V="${GITHUB_REF_NAME#v}"
-          mkdir -p dist/completions
-          cp cmd/opensave-app/build/bin/OpenSave dist/opensave
-          ./dist/opensave-cli completion bash > dist/completions/opensave.bash
-          ./dist/opensave-cli completion zsh  > dist/completions/_opensave
-          ./dist/opensave-cli completion fish > dist/completions/opensave.fish
-
-          ARCH=amd64 VERSION="$V" nfpm package -f packaging/nfpm.yaml -p deb -t .
-          ARCH=amd64 VERSION="$V" nfpm package -f packaging/nfpm.yaml -p rpm -t .
-          ls -la ./*.deb ./*.rpm
-
-      # The Decky plugin shipped nowhere: the only documented way to get it was
-      # to clone the repo, run npm on a dev machine and scp four files to the
-      # Deck. Package it here so a Deck user can unzip it into
-      # ~/homebrew/plugins and be done.
-      - name: Build the Decky plugin
-        working-directory: opensave-decky-plugin
-        run: |
-          npm ci --no-audit --no-fund
-          npm run build
-          test -s dist/index.js || { echo "::error::plugin build produced no dist/index.js"; exit 1; }
-      - name: Package the Decky plugin
-        run: |
-          # Exactly what Decky loads — node_modules, src and the source map
-          # are not part of an installed plugin.
-          mkdir -p decky-pkg/OpenSave/dist
-          cp opensave-decky-plugin/plugin.json  decky-pkg/OpenSave/
-          cp opensave-decky-plugin/package.json decky-pkg/OpenSave/
-          cp opensave-decky-plugin/main.py      decky-pkg/OpenSave/
-          cp opensave-decky-plugin/dist/index.js decky-pkg/OpenSave/dist/
-          # The zip says the version of the tag it is released under. Plugin
-          # managers compare the two, and a mismatch offers the same update
-          # again and again (#149). A manual run has no tag: it keeps the files'.
-          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
-            V="${GITHUB_REF_NAME#v}"
-            for f in plugin.json package.json; do
-              jq --arg v "$V" '.version = $v' "decky-pkg/OpenSave/$f" > "$f.stamped"
-              mv "$f.stamped" "decky-pkg/OpenSave/$f"
-              test "$(jq -r .version "decky-pkg/OpenSave/$f")" = "$V"
-            done
-          fi
-          (cd decky-pkg && zip -r ../OpenSave-decky-plugin.zip OpenSave)
-          unzip -l OpenSave-decky-plugin.zip
+          ./dist/opensave-cli version
 
       - uses: actions/upload-artifact@v4
         with:
           name: linux
-          path: |
-            opensave-linux-amd64.tar.gz
-            opensave-linux-arm64.tar.gz
-            *.deb
-            *.rpm
-            OpenSave-decky-plugin.zip
+          if-no-files-found: error
+          path: opensave-linux-amd64.tar.gz
 
   # Flatpak bundle: the only install that works on a stock Steam Deck.
   # SteamOS ships no WebKitGTK and wipes pacman installs on OS updates; the
@@ -366,6 +283,9 @@ jobs:
         working-directory: cmd/opensave-app
         run: |
           APP=build/bin/OpenSave.app
+          plutil -replace CFBundleName -string OpenSave-KO "$APP/Contents/Info.plist"
+          /usr/libexec/PlistBuddy -c "Add :CFBundleDisplayName string OpenSave-KO" "$APP/Contents/Info.plist" 2>/dev/null \
+            || /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName OpenSave-KO" "$APP/Contents/Info.plist"
           # Extended attributes left by the build make codesign refuse
           # ("resource fork, Finder information, or similar detritus").
           xattr -cr "$APP"
@@ -421,9 +341,9 @@ jobs:
           # /Applications, which is the drag-to-install layout Mac users expect.
           STAGE=dmg-stage
           mkdir -p "$STAGE"
-          cp -R cmd/opensave-app/build/bin/OpenSave.app "$STAGE/"
+          cp -R cmd/opensave-app/build/bin/OpenSave.app "$STAGE/OpenSave-KO.app"
           ln -s /Applications "$STAGE/Applications"
-          hdiutil create -volname OpenSave -srcfolder "$STAGE" -ov -format UDZO OpenSave-macos.dmg
+          hdiutil create -volname OpenSave-KO -srcfolder "$STAGE" -ov -format UDZO OpenSave-macos.dmg
           hdiutil verify OpenSave-macos.dmg
 
           # What a Mac gets is the app inside the image, so check that one:
@@ -431,8 +351,8 @@ jobs:
           # "damaged" message is a signature that does not verify.
           MNT="$(mktemp -d)"
           hdiutil attach -readonly -nobrowse -mountpoint "$MNT" OpenSave-macos.dmg
-          codesign --verify --deep --strict --verbose=2 "$MNT/OpenSave.app"
-          codesign --display --verbose=2 "$MNT/OpenSave.app" 2>&1 | grep -q "Sealed Resources version=2" \
+          codesign --verify --deep --strict --verbose=2 "$MNT/OpenSave-KO.app"
+          codesign --display --verbose=2 "$MNT/OpenSave-KO.app" 2>&1 | grep -q "Sealed Resources version=2" \
             || { hdiutil detach "$MNT"; echo "::error::the app in the .dmg has no sealed resources — macOS would call it damaged"; exit 1; }
           hdiutil detach "$MNT"
 
@@ -476,14 +396,6 @@ jobs:
             opensave-macos-arm64.tar.gz
             opensave-macos-amd64.tar.gz
 
-  relay-docker:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build relay image
-        run: docker build -f relay/Dockerfile -t opensave-relay .
-
-  # Publish a real GitHub Release with all downloadable assets on tag push.
   release:
     needs: [windows, linux, flatpak, macos]
     if: startsWith(github.ref, 'refs/tags/v')
@@ -505,109 +417,43 @@ jobs:
         with:
           name: macos
           path: macos
-      # GitHub renames release assets: a "~" in a filename becomes ".". The
-      # Debian and RPM packages spell a pre-release as 2.4.0~beta.1, so the
-      # names in SHA256SUMS did not match the names on the releases page for
-      # any beta, and a checksum nobody can look up verifies nothing. Rename
-      # them here to what GitHub will publish, before the sums are taken.
-      - name: Name packages the way GitHub will publish them
+      - name: Stage release files and verify checksums
+        shell: bash
         run: |
-          for f in linux/*~*; do
-            [ -e "$f" ] || continue
-            mv -v "$f" "$(echo "$f" | tr '~' '.')"
-          done
+          set -euo pipefail
+          mkdir -p release
+          cp windows/OpenSave.exe release/OpenSave-KO-Windows-x64.exe
+          cp windows/OpenSave.Setup.exe release/OpenSave-KO-Windows-Setup.exe
+          cp linux/opensave-linux-amd64.tar.gz release/opensave-ko-linux-amd64.tar.gz
+          cp flatpak/OpenSave.flatpak release/OpenSave-KO-Bazzite-x64.flatpak
+          cp macos/OpenSave-macos.dmg release/OpenSave-KO-macOS.dmg
+          cp macos/opensave-macos-arm64.tar.gz release/opensave-ko-macos-arm64.tar.gz
+          cp macos/opensave-macos-amd64.tar.gz release/opensave-ko-macos-amd64.tar.gz
+          cd release
+          sha256sum -- * > SHA256SUMS
+          sha256sum --check SHA256SUMS
 
-      # The Windows artifact is uploaded from two folders, and upload-artifact
-      # keeps each file's path relative to their common root — so they arrive
-      # as windows/cmd/opensave-app/build/bin/OpenSave.exe and
-      # windows/dist/opensave-cli.exe, not windows/OpenSave.exe. The publish
-      # step's windows/**/*.exe and the path-stripping in SHA256SUMS both
-      # tolerated that; the check below did not, and refused the first real
-      # release it ran on with every Windows file "missing". Flatten first,
-      # so one layout is what everything after this sees.
-      - name: Flatten the Windows artifact
-        run: |
-          find windows -mindepth 2 -type f -name '*.exe' -exec mv -v -t windows/ {} +
-          ls -la windows/
-
-      # Every platform's build has to be here, or this is not a release of
-      # OpenSave — it is a release of some of it. The macOS job built,
-      # verified and uploaded a .dmg and two tarballs for a month before
-      # anyone noticed the publish step below never listed them, and
-      # fail_on_unmatched_files is (necessarily) off. install.sh on a Mac
-      # downloads one of those tarballs. Checked by name, loudly.
-      - name: Check every artifact is present
-        run: |
-          missing=0
-          for want in \
-            windows/OpenSave.exe windows/OpenSave.Setup.exe \
-            windows/opensave-cli.exe windows/opensave-relay.exe \
-            linux/opensave-linux-amd64.tar.gz linux/opensave-linux-arm64.tar.gz \
-            linux/OpenSave-decky-plugin.zip \
-            flatpak/OpenSave.flatpak \
-            macos/OpenSave-macos.dmg \
-            macos/opensave-macos-amd64.tar.gz macos/opensave-macos-arm64.tar.gz; do
-            if [ ! -f "$want" ]; then
-              echo "::error::release artifact missing: $want"
-              missing=1
-            fi
-          done
-          ls linux/*.deb linux/*.rpm >/dev/null 2>&1 || { echo "::error::no .deb/.rpm in linux/"; missing=1; }
-          if [ "$missing" -ne 0 ]; then
-            echo "::error::refusing to publish a partial release"
-            exit 1
-          fi
-
-      # scripts/install.sh verifies downloads against this before installing.
-      # Piping an installer to a shell is trust enough; it should at least
-      # refuse bytes it can't vouch for.
-      - name: Name the Korean release assets
-        run: |
-          mv windows/OpenSave.exe windows/OpenSave-KO.exe
-          mv flatpak/OpenSave.flatpak flatpak/OpenSave-KO.flatpak
-          mv linux/opensave-linux-amd64.tar.gz linux/OpenSave-KO-linux-amd64.tar.gz
-
-      - name: Generate SHA256SUMS
-        run: |
-          find windows linux flatpak macos -type f \
-            \( -name '*.exe' -o -name '*.msi' -o -name '*.tar.gz' \
-               -o -name '*.deb' -o -name '*.rpm' -o -name '*.flatpak' \
-               -o -name '*.zip' -o -name '*.dmg' \) \
-            -exec sha256sum {} + | sed 's| .*/| |' > SHA256SUMS
-          cat SHA256SUMS
-
-      - name: Publish release
+      - name: Publish OpenSave-KO release
         uses: softprops/action-gh-release@v2
         with:
           name: OpenSave-KO ${{ github.ref_name }}
-          # Hyphenated tags (v2.1.0-beta.1) publish as pre-releases, so
-          # /releases/latest ignores them. Only devices on the beta channel
-          # are offered these: either the user ticked Settings -> Updates, or
-          # they are already running a pre-release (see selfupdate).
           prerelease: ${{ contains(github.ref_name, '-') }}
-          # Note: re-publishing the same tag appends another generated-notes
-          # block; if a tag is ever re-cut, tidy the release body by hand.
-          generate_release_notes: true
-          # `body` is placed above the generated notes, so the invitation is
-          # the first thing in every release rather than buried under a
-          # commit list.
+          fail_on_unmatched_files: true
           body: |
-            ### 💬 Questions, bug reports, or just want to say hello?
+            OpenSave-KO의 첫 한국어 프리릴리스입니다. OpenSave 2.4.1을 기반으로 기존 세이브와 설정을 이어 쓸 수 있습니다.
 
-            **[Join the OpenSave Discord →](https://discord.gg/hvBv92DZvn)**
-
-            It is the fastest way to get help, and where new builds get
-            discussed before they ship.
-
-            ---
-          fail_on_unmatched_files: false
+            - Windows 11 x64에서는 포터블 EXE 또는 Setup을 사용하세요.
+            - Bazzite GNOME에서는 GUI용 Flatpak과 백그라운드 CLI용 Linux 아카이브를 제공합니다.
+            - macOS DMG에는 범용 앱이 들어 있습니다. Apple Silicon과 Intel용 CLI는 각각 별도 아카이브로 제공합니다.
+            - macOS 앱은 ad hoc 서명 상태이며 Apple 공증을 받지 않았습니다.
+            - 일부 GUI 문구는 영어로 표시됩니다.
+            - 다운로드 파일의 SHA-256을 `SHA256SUMS`와 비교할 수 있습니다.
           files: |
-            windows/**/*.exe
-            linux/*.tar.gz
-            linux/*.deb
-            linux/*.rpm
-            linux/OpenSave-decky-plugin.zip
-            flatpak/*.flatpak
-            macos/*.dmg
-            macos/*.tar.gz
-            SHA256SUMS
+            release/OpenSave-KO-Windows-x64.exe
+            release/OpenSave-KO-Bazzite-x64.flatpak
+            release/opensave-ko-linux-amd64.tar.gz
+            release/OpenSave-KO-Windows-Setup.exe
+            release/OpenSave-KO-macOS.dmg
+            release/opensave-ko-macos-arm64.tar.gz
+            release/opensave-ko-macos-amd64.tar.gz
+            release/SHA256SUMS

@@ -406,7 +406,6 @@ Section "uninstall"
     ; The app first, or its own executable cannot be deleted.
     Call un.StopRunningOpenSave
 
-    RMDir /r "$AppData\${PRODUCT_EXECUTABLE}" # Remove the WebView2 DataPath
 
     RMDir /r $INSTDIR
 
@@ -423,8 +422,8 @@ Section "uninstall"
     ; and can be clicked (notify_windows.go): its name and icon, and the class
     ; Windows starts when one is clicked. Left behind, Windows would try to
     ; start a program that is no longer there.
-    DeleteRegKey HKCU "Software\Classes\AppUserModelId\OpenSave"
-    DeleteRegKey HKCU "Software\Classes\CLSID\{898771DA-ECF7-4FD5-BC28-27D73882593F}"
+    DeleteRegKey HKCU "Software\Classes\AppUserModelId\OpenSave-KO"
+    DeleteRegKey HKCU "Software\Classes\CLSID\{5CF90E05-F31D-5DCB-9567-3D465C726DD2}"
 
     ; The command-line tool installs itself separately, outside this folder,
     ; and a `opensave` that still answers after the app is gone is a surprise
