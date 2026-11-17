@@ -31,6 +31,7 @@ var instanceID = defaultInstanceID
 // defaultInstanceID is the installed app's. See notify_windows.go for what
 // else is told apart by it.
 const defaultInstanceID = "opensave-desktop-single-instance"
+const displayName = "OpenSave-KO"
 
 func main() {
 	// WebKitGTK's DMA-BUF renderer instantly crashes or blanks the window
@@ -51,7 +52,7 @@ func main() {
 	app := NewApp()
 
 	err := wails.Run(&options.App{
-		Title:     "OpenSave",
+		Title:     displayName,
 		Width:     1280,
 		Height:    800,
 		MinWidth:  960,
@@ -82,6 +83,7 @@ func main() {
 			app,
 		},
 		Windows: &windows.Options{
+			WebviewUserDataPath:  webviewUserDataPath(),
 			WebviewIsTransparent: false,
 			WindowIsTranslucent:  false,
 		},

@@ -48,7 +48,7 @@ func runningInFlatpak() bool {
 }
 
 const flatpakUpdateMsg = "OpenSave is installed as a Flatpak, which updates through Flatpak itself — " +
-	"run \"flatpak update\", or install the newer OpenSave.flatpak from the GitHub release page."
+	"run \"flatpak update\", or install the newer OpenSave-KO.flatpak from the GitHub release page."
 
 // InstallUpdateFromPeer downloads the newer build a paired peer is running
 // and installs it. Returns immediately; progress and the final outcome

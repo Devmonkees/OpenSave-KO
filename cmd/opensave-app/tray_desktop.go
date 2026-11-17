@@ -70,7 +70,7 @@ var trayPauseChoices = []struct {
 func (a *App) startTray() {
 	go systray.Run(func() {
 		systray.SetIcon(trayIconBytes())
-		systray.SetTitle("OpenSave")
+		systray.SetTitle(displayName)
 		catalog := a.trayCatalog()
 
 		statusItem := systray.AddMenuItem(catalog.label("starting"), catalog.label("statusHint"))
@@ -131,7 +131,7 @@ func (a *App) startTray() {
 			}
 			facts := a.trayFacts()
 			statusItem.SetTitle(trayStatus(facts, catalog))
-			systray.SetTooltip("OpenSave — " + trayStatus(facts, catalog))
+			systray.SetTooltip(displayName + " — " + trayStatus(facts, catalog))
 			lines := trayRecent(a.daemon.Log.History(), trayRecentLines)
 			for i, item := range recentItems {
 				if i < len(lines) {

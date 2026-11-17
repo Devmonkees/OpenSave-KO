@@ -11,25 +11,15 @@ import (
 	"github.com/google/uuid"
 )
 
-// A toast needs the app registered with Windows under an app id, which is
-// what its header shows — "OpenSave", with OpenSave's icon — and a COM class
-// Windows calls back when the toast is clicked. Both are the current user's
-// registry entries (HKCU\Software\Classes\AppUserModelId\OpenSave and the
-// class's CLSID), written once and removed by the uninstaller.
-//
-// A test build beside the installed app (-X main.instanceID=…) registers
-// under a name and class of its own: sharing them would point the installed
-// app's notifications at the test build's executable.
-
-// toastGUID is the class Windows activates when an OpenSave toast is clicked.
-const toastGUID = "{898771DA-ECF7-4FD5-BC28-27D73882593F}"
-
+// Windows uses the app ID as the toast header. Give the KO build and test
+// builds their own activation classes to keep clicks routed to the right EXE.
 func toastIdentity() (appID, guid string) {
-	if instanceID == defaultInstanceID {
-		return "OpenSave", toastGUID
+	appID = displayName
+	if instanceID != defaultInstanceID {
+		appID += " (" + instanceID + ")"
 	}
-	id := uuid.NewSHA1(uuid.NameSpaceOID, []byte("opensave-toast:"+instanceID))
-	return "OpenSave (" + instanceID + ")", "{" + id.String() + "}"
+	id := uuid.NewSHA1(uuid.NameSpaceOID, []byte("opensave-toast:"+appID))
+	return appID, "{" + id.String() + "}"
 }
 
 func (a *App) initNotifications() {
