@@ -1,3 +1,4 @@
+import { locale } from './i18n.js';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { api, initApi } from './api.js';
 
@@ -49,3 +50,5 @@ describe('initApi', () => {
     await expect(initApi()).resolves.toBe('http://127.0.0.1:18777');
   });
 });
+
+locale.set('en');

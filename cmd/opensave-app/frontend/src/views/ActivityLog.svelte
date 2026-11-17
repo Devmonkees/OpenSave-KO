@@ -1,4 +1,5 @@
 <script>
+  import { t } from '../lib/i18n.js';
   import { slidingIndicator } from '../lib/motion.js';
   import { onDestroy } from 'svelte';
   import Check from 'lucide-svelte/icons/check';
@@ -68,10 +69,10 @@
 
 <div class="head">
   <div class="title-row">
-    <h2 class="page-title">Activity</h2>
-    <div class="segmented" role="tablist" aria-label="Activity view" use:slidingIndicator={{ mode: 'fill' }}>
-      <button role="tab" aria-selected={view === 'timeline'} class:on={view === 'timeline'} on:click={() => (view = 'timeline')}>Timeline</button>
-      <button role="tab" aria-selected={view === 'log'} class:on={view === 'log'} on:click={() => (view = 'log')}>Log</button>
+    <h2 class="page-title">{$t('sidebar.nav.activity')}</h2>
+    <div class="segmented" role="tablist" aria-label="{$t('ui.activityView')}" use:slidingIndicator={{ mode: 'fill' }}>
+      <button role="tab" aria-selected={view === 'timeline'} class:on={view === 'timeline'} on:click={() => (view = 'timeline')}>{$t('ui.timeline')}</button>
+      <button role="tab" aria-selected={view === 'log'} class:on={view === 'log'} on:click={() => (view = 'log')}>{$t('ui.log')}</button>
     </div>
   </div>
   {#if view === 'log'}
@@ -81,13 +82,13 @@
       counts={{ problems: problemCount }}
       bind:value={show}
     />
-    <SearchInput placeholder="Search activity…" bind:value={query} />
-    <label class="toggle" title="Every entry exactly as logged, oldest first — what a bug report wants">
+    <SearchInput placeholder="{$t('ui.searchActivity')}" bind:value={query} />
+    <label class="toggle" title="{$t('ui.everyEntryExactlyAsLoggedOldest')}">
       <input type="checkbox" bind:checked={technical} />
-      Technical log
+      {$t('ui.technicalLog')}
     </label>
-    <button class="btn small" disabled={shown.length === 0} on:click={copyShown} title="Copy what is shown, for a bug report">
-      Copy
+    <button class="btn small" disabled={shown.length === 0} on:click={copyShown} title="{$t('ui.copyWhatIsShownForA')}">
+      {$t('ui.copy')}
     </button>
   </div>
   {/if}
@@ -96,10 +97,10 @@
 {#if view === 'timeline'}
   <Timeline />
 {:else if $logEntries.length === 0}
-  <div class="card"><div class="empty"><h3>Nothing yet</h3><p>Syncs, snapshots and anything that needs your attention show up here.</p></div></div>
+  <div class="card"><div class="empty"><h3>{$t('ui.nothingYet')}</h3><p>{$t('ui.syncsSnapshotsAndAnythingThatNeeds')}</p></div></div>
 {:else if shown.length === 0}
-  <div class="card"><div class="empty"><h3>Nothing matches</h3><p>
-        {#if query}Try another search.{:else if show === 'problems'}No warnings or errors — all quiet.{:else}Nothing but routine so far — <button class="linklike" on:click={() => (show = 'all')}>show everything</button>.{/if}
+  <div class="card"><div class="empty"><h3>{$t('ui.nothingMatches')}</h3><p>
+        {#if query}{$t('ui.tryAnotherSearch')}{:else if show === 'problems'}{$t('ui.noWarningsOrErrorsAllQuiet')}{:else}{$t('ui.nothingButRoutineSoFar')} <button class="linklike" on:click={() => (show = 'all')}>{$t('ui.showEverything')}</button>.{/if}
       </p></div></div>
 {:else if technical}
   <div class="card log" use:autoscroll={shown.length}>

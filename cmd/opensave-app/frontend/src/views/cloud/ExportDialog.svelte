@@ -1,4 +1,5 @@
 <script>
+  import { t } from '../../lib/i18n.js';
   // Export: tracked games plus saves the scan found, pre-ticked for the
   // tracked ones. The chosen games' LIVE saves, with where each belongs, go
   // into one .sscb file. Fires `close`.
@@ -102,10 +103,10 @@
   }
 </script>
 
-<Modal title="Export saves" icon={Package} onClose={close}>
+<Modal title="{$t('ui.exportSaves2')}" icon={Package} onClose={close}>
   <svelte:fragment slot="sub">
     {#if !items}
-      Looking for saves on this machine…
+      {$t('ui.lookingForSavesOnThisMachine')}
     {:else}
       {count} of {items.length} selected — each game's current save is exported
       along with where it belongs
@@ -113,19 +114,19 @@
   </svelte:fragment>
 
   {#if !items}
-    <ModalLoading>Listing tracked games and scanning for saves…</ModalLoading>
+    <ModalLoading>{$t('ui.listingTrackedGamesAndScanningFor')}</ModalLoading>
   {:else}
     <div class="toolbar">
       <button class="btn small" on:click={() => setAll(!allSelected)}>
         {allSelected ? 'Unselect all' : 'Select all'}
       </button>
-      <button class="btn small" on:click={() => { setAll(false); setAll(true, true); }}>Tracked only</button>
+      <button class="btn small" on:click={() => { setAll(false); setAll(true, true); }}>{$t('ui.trackedOnly')}</button>
     </div>
     <div class="list">
       {#if items.length === 0}
         <div class="empty-state">
           <div class="empty-icon"><Package size={36} strokeWidth={1.5} /></div>
-          <p>No saves found to export.</p>
+          <p>{$t('ui.noSavesFoundToExport')}</p>
         </div>
       {:else}
         <div class="grid">
@@ -144,14 +145,14 @@
     </div>
     {#if exporting && prog}
       <ProgressBar done={prog.done} total={prog.total}>
-        Exporting {Math.min(prog.done + 1, prog.total)} of {prog.total}
+        {$t('ui.exporting')} {Math.min(prog.done + 1, prog.total)} of {prog.total}
         {#if prog.current}&nbsp;— <code>{prog.current}</code>{/if}
       </ProgressBar>
     {/if}
     <ModalFoot>
-      <span class="quiet">Detected saves export fine without being tracked.</span>
+      <span class="quiet">{$t('ui.detectedSavesExportFineWithoutBeing')}</span>
       <div class="actions">
-        <button class="btn" on:click={close}>Cancel</button>
+        <button class="btn" on:click={close}>{$t('common.cancel')}</button>
         <button class="btn primary" disabled={exporting || count === 0} on:click={run}>
           {exporting ? 'Exporting…' : `Export ${count} save${count === 1 ? '' : 's'}`}
         </button>

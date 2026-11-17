@@ -1,4 +1,5 @@
 <script>
+  import { t } from '../../lib/i18n.js';
   // Signing in to Google Drive, OneDrive or Dropbox — or the account card
   // once signed in. Kept mounted while other cards are looked at, so a
   // sign-in finishing in the browser meanwhile is still caught.
@@ -102,7 +103,7 @@
           {isEmail(config.tokens.userEmail) ? config.tokens.userEmail : 'Signed in — new snapshots upload automatically'}
         </div>
       </div>
-      <button class="btn small danger" disabled={$busy} on:click={disconnect}>Disconnect</button>
+      <button class="btn small danger" disabled={$busy} on:click={disconnect}>{$t('ui.disconnect')}</button>
     </div>
   {:else}
     {#if connected}
@@ -125,12 +126,12 @@
       <div class="waiting">
         <Spinner size={16} />
         <div class="waiting-text">
-          <strong>Waiting for you to finish signing in…</strong>
+          <strong>{$t('ui.waitingForYouToFinishSigning')}</strong>
           <span class="quiet">
             {authAuto ? 'Approve access in your browser — OpenSave connects by itself.' : 'Approve access in your browser, then paste below where it lands.'}
           </span>
         </div>
-        <button class="btn small" on:click={cancelAuth}>Cancel</button>
+        <button class="btn small" on:click={cancelAuth}>{$t('common.cancel')}</button>
       </div>
       <!-- Always shown, not behind a link: when the browser can't reach
            OpenSave it shows an error page with the code in its address bar,
@@ -141,8 +142,8 @@
           the whole address from its address bar and paste it here:
         </p>
         <div class="path-row">
-          <input placeholder="http://localhost/callback?code=…" bind:value={authCode} aria-label="Address or code from the browser" />
-          <button class="btn primary" disabled={!authCode.trim() || $busy} on:click={finishAuth}>Connect</button>
+          <input placeholder="http://localhost/callback?code=…" bind:value={authCode} aria-label="{$t('ui.addressOrCodeFromTheBrowser')}" />
+          <button class="btn primary" disabled={!authCode.trim() || $busy} on:click={finishAuth}>{$t('ui.connect')}</button>
         </div>
       </div>
     {/if}

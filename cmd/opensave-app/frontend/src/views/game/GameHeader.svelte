@@ -144,7 +144,7 @@
 </script>
 
 <div class="head">
-  <button class="btn icon back" on:click={() => navigate('home')} title="Back" aria-label="Back"><ArrowLeft size={18} /></button>
+  <button class="btn icon back" on:click={() => navigate('home')} title="{$t('ui.back')}" aria-label="{$t('ui.back')}"><ArrowLeft size={18} /></button>
   {#if gameCover(game)}
     <img
       class="head-cover"
@@ -162,19 +162,19 @@
           class:invalid={!!nameProblem}
           bind:value={nameDraft}
           maxlength={MAX_GAME_NAME + 20}
-          aria-label="Game name"
+          aria-label="{$t('ui.gameName')}"
           aria-invalid={!!nameProblem}
           use:focusSelect
           on:keydown={nameKeys}
         />
-        <button class="btn small primary" disabled={!!nameProblem || nameSaving} on:click={saveName}>Save</button>
-        <button class="btn small" on:click={() => (editName = false)}>Cancel</button>
+        <button class="btn small primary" disabled={!!nameProblem || nameSaving} on:click={saveName}>{$t('ui.save')}</button>
+        <button class="btn small" on:click={() => (editName = false)}>{$t('common.cancel')}</button>
       {:else}
         {game.name}
         <button
           class="btn small ghost icon rename"
-          title="Rename (only on this device; syncing is unaffected)"
-          aria-label="Rename"
+          title="{$t('ui.renameOnlyOnThisDeviceSyncing')}"
+          aria-label="{$t('common.rename')}"
           on:click={startRename}
         >
           <Pencil size={14} />
@@ -227,24 +227,24 @@
   </div>
   <div class="head-actions">
     {#if canLaunch(game)}
-      <button class="btn" disabled={$busy} on:click={launchGame}><Play size={15} />Launch</button>
+      <button class="btn" disabled={$busy} on:click={launchGame}><Play size={15} />{$t('ui.launch')}</button>
     {/if}
-    <button class="btn primary" disabled={$busy} on:click={syncNow}><RefreshCw size={15} />Sync now</button>
+    <button class="btn primary" disabled={$busy} on:click={syncNow}><RefreshCw size={15} />{$t('ui.syncNow')}</button>
   </div>
 </div>
 
 <div class="path-line">
   {#if editPath}
     <input class="path-input" bind:value={pathDraft} />
-    <button class="btn small" on:click={async () => (pathDraft = (await native.selectDirectory('Select save folder')) || pathDraft)}>Browse</button>
-    <button class="btn small primary" on:click={savePath}>Save</button>
-    <button class="btn small" on:click={() => (editPath = false)}>Cancel</button>
+    <button class="btn small" on:click={async () => (pathDraft = (await native.selectDirectory('Select save folder')) || pathDraft)}>{$t('settings.storage.browse')}</button>
+    <button class="btn small primary" on:click={savePath}>{$t('ui.save')}</button>
+    <button class="btn small" on:click={() => (editPath = false)}>{$t('common.cancel')}</button>
   {:else}
     <span class="path" title={game.savePath}>{game.savePath}</span>
-    <button class="btn small" on:click={openSaveFolder} title="Show this folder in your file manager">
-      <FolderOpen size={14} />Open folder
+    <button class="btn small" on:click={openSaveFolder} title="{$t('ui.showThisFolderInYourFile')}">
+      <FolderOpen size={14} />{$t('ui.openFolder')}
     </button>
-    <button class="btn small" on:click={() => { pathDraft = game.savePath; editPath = true; }}><Pencil size={13} />Edit</button>
+    <button class="btn small" on:click={() => { pathDraft = game.savePath; editPath = true; }}><Pencil size={13} />{$t('ui.edit')}</button>
   {/if}
 </div>
 
@@ -256,23 +256,23 @@
     <TriangleAlert size={16} />
     <div>
       {#if game.emptied.state === 'fetching'}
-        <strong>Putting the files back.</strong>
-        Some are still to come from your other devices; this game syncs as usual once they're all here.
+        <strong>{$t('ui.puttingTheFilesBack')}</strong>
+        {$t('ui.someAreStillToComeFrom')}
       {:else}
         <strong>Every save file in {emptiedWhere(game.emptied.locations)} was deleted on this device.</strong>
-        Your other devices still have theirs, and nothing is synced until you choose.
+        {$t('ui.yourOtherDevicesStillHaveTheirs')}
         {#if game.emptied.putBackFrom}
           Put them back from the snapshot of {whenLabel(game.emptied.putBackFromTime)}, with anything newer from your other devices
         {:else}
-          Put them back from your other devices
+          {$t('ui.putThemBackFromYourOther')}
         {/if}
-        — or, if you meant it, delete them there too; each device keeps a snapshot first.
+        {$t('ui.orIfYouMeantItDelete')}
         <div class="emptied-actions">
           <button class="btn small primary" disabled={answering} on:click={() => answerEmptied('restore')}>
-            <RotateCcw size={13} />Put them back
+            <RotateCcw size={13} />{$t('ui.putThemBack')}
           </button>
           <button class="btn small" disabled={answering} on:click={() => answerEmptied('delete')}>
-            Delete them on my other devices too
+            {$t('ui.deleteThemOnMyOtherDevices')}
           </button>
         </div>
       {/if}
@@ -286,7 +286,7 @@
   <div class="missing elsewhere" role="status">
     <Info size={16} />
     <div>
-      <strong>This game isn't on this device.</strong>
+      <strong>{$t('ui.thisGameIsnTOnThis')}</strong>
       Its saves are on {game.savePath.slice(0, 2)}, which this PC doesn't have, so it's skipped here and keeps syncing
       between your other devices. If it is installed here, point the game at its save folder with Edit.
     </div>
@@ -298,10 +298,8 @@
   <div class="missing" role="status">
     <TriangleAlert size={16} />
     <div>
-      <strong>This save folder is not there.</strong>
-      It may have been moved or deleted, or be on a drive that isn't connected. Nothing is snapshotted or synced for
-      this game until it's back — OpenSave picks it up again within a minute. If the save lives somewhere else now,
-      point the game at it with Edit.
+      <strong>{$t('ui.thisSaveFolderIsNotThere')}</strong>
+      {$t('ui.itMayHaveBeenMovedOr')}
     </div>
   </div>
 {/if}
@@ -313,10 +311,10 @@
     <Info size={16} />
     <div>
       <strong>The same folder is at {game.relocateSuggestion}.</strong>
-      Is that where this game saves on this device? Only use it if it holds your current saves, not an old copy.
+      {$t('ui.isThatWhereThisGameSaves')}
       <div class="relocate-actions">
-        <button class="btn small primary" disabled={relocating} on:click={() => answerRelocation(true)}>Use this folder</button>
-        <button class="btn small ghost" disabled={relocating} on:click={() => answerRelocation(false)}>Not this one</button>
+        <button class="btn small primary" disabled={relocating} on:click={() => answerRelocation(true)}>{$t('ui.useThisFolder')}</button>
+        <button class="btn small ghost" disabled={relocating} on:click={() => answerRelocation(false)}>{$t('ui.notThisOne')}</button>
       </div>
     </div>
   </div>

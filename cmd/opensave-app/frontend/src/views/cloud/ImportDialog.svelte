@@ -1,4 +1,5 @@
 <script>
+  import { t } from '../../lib/i18n.js';
   // Import a .sscb backup. "snapshots" (the default) never touches live
   // files; "overwrite" restores every save in the file onto disk — the daemon
   // takes safety copies of anything it replaces. Fires `close`.
@@ -51,30 +52,25 @@
 
 <!-- Two choices and a footer don't need the full browser-modal height —
      sized to content so the dialog doesn't look hollow. -->
-<Modal title="Import backup" icon={PackageOpen} onClose={close} closable={!importing} width={560} height="auto" maxHeight="min(78vh, 720px)">
+<Modal title="{$t('ui.importBackup')}" icon={PackageOpen} onClose={close} closable={!importing} width={560} height="auto" maxHeight="min(78vh, 720px)">
   <svelte:fragment slot="sub"><code>{source}</code></svelte:fragment>
 
   <div class="modes">
     <label class="mode" class:selected={mode === 'snapshots'}>
       <input type="radio" bind:group={mode} value="snapshots" />
       <div>
-        <div class="mode-title">Add to snapshots <span class="badge online">recommended</span></div>
+        <div class="mode-title">{$t('ui.addToSnapshots')} <span class="badge online">{$t('ui.recommended')}</span></div>
         <p class="quiet">
-          Each save in the file is added to its game's snapshot history. Nothing on disk
-          changes — restore individual games whenever you choose. Games not tracked on this
-          machine are reported in Activity and skipped.
+          {$t('ui.eachSaveInTheFileIs')}
         </p>
       </div>
     </label>
     <label class="mode danger-mode" class:selected={mode === 'overwrite'}>
       <input type="radio" bind:group={mode} value="overwrite" />
       <div>
-        <div class="mode-title">Overwrite current saves</div>
+        <div class="mode-title">{$t('ui.overwriteCurrentSaves')}</div>
         <p class="quiet">
-          Every save in the file is written to its location on this machine — tracked games to
-          their tracked folder, others to the path recorded in the backup. A safety copy of
-          whatever is there now is taken first. Check Activity afterwards for exactly what was
-          restored where.
+          {$t('ui.everySaveInTheFileIs')}
         </p>
       </div>
     </label>
@@ -82,14 +78,14 @@
 
   {#if importing && prog}
     <ProgressBar done={prog.done} total={prog.total}>
-      Importing {Math.min(prog.done + 1, prog.total)} of {prog.total}
+      {$t('ui.importing')} {Math.min(prog.done + 1, prog.total)} of {prog.total}
       {#if prog.current}&nbsp;— <code>{prog.current}</code>{/if}
     </ProgressBar>
   {/if}
   <ModalFoot>
-    <span class="quiet">Nothing is ever overwritten without a safety copy.</span>
+    <span class="quiet">{$t('ui.nothingIsEverOverwrittenWithoutA')}</span>
     <div class="actions">
-      <button class="btn" disabled={importing} on:click={close}>Cancel</button>
+      <button class="btn" disabled={importing} on:click={close}>{$t('common.cancel')}</button>
       <button class="btn {mode === 'overwrite' ? 'danger' : 'primary'}" disabled={importing} on:click={run}>
         {importing ? 'Importing…' : mode === 'overwrite' ? 'Overwrite saves' : 'Add to snapshots'}
       </button>

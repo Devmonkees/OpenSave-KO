@@ -1,4 +1,5 @@
 <script>
+  import { t } from '../../lib/i18n.js';
   // ── Your own OAuth app ───────────────────────────────────────────
   // The daemon has always supported a per-provider client id and secret;
   // nothing in the app set them, so the only route was a hand-written API
@@ -69,7 +70,7 @@
 <div class="own-app">
   {#if needsOwnApp(provider) && !ownAppID}
     <p class="quiet required">
-      <strong>OneDrive needs your own app registration.</strong> Microsoft doesn't allow a
+      <strong>{$t('ui.onedriveNeedsYourOwnAppRegistration')}</strong> Microsoft doesn't allow a
       shared one, so OpenSave can't ship credentials for it. Create a free app in the
       <button class="linkish" on:click={() => native.openExternal('https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade')}>Azure portal</button>
       with redirect URI <code>http://localhost/callback</code>, then paste its Application
@@ -77,7 +78,7 @@
     </p>
   {:else}
     <button class="linkish" on:click={() => (showOwnApp = !showOwnApp)}>
-      <Chevron open={showOwnApp} size={12} /> Use your own OAuth app{ownAppID ? ' (in use)' : ''}
+      <Chevron open={showOwnApp} size={12} /> {$t('ui.useYourOwnOauthApp')}{ownAppID ? ' (in use)' : ''}
     </button>
   {/if}
 
@@ -106,26 +107,25 @@
         />
       </div>
       <div class="field">
-        <label for="cb-clientsecret">Client secret <span class="quiet">— leave empty unless your app requires one</span></label>
+        <label for="cb-clientsecret">{$t('ui.clientSecret')} <span class="quiet">— leave empty unless your app requires one</span></label>
         <input id="cb-clientsecret" type="password" bind:value={ownAppSecret} spellcheck="false" />
       </div>
       <div class="path-row">
-        <button class="btn primary" disabled={$busy} on:click={save}>Save credentials</button>
+        <button class="btn primary" disabled={$busy} on:click={save}>{$t('ui.saveCredentials')}</button>
         {#if ownAppID}
           <button
             class="btn small"
             disabled={$busy}
-            title="Go back to OpenSave's built-in credentials"
+            title="{$t('ui.goBackToOpensaveSBuilt')}"
             on:click={() => { ownAppID = ''; ownAppSecret = ''; save(); }}
           >
-            Use the built-in app
+            {$t('ui.useTheBuiltInApp')}
           </button>
         {/if}
       </div>
       {#if connected === provider}
         <p class="quiet">
-          You're signed in already — changing this disconnects you, because the existing
-          sign-in belongs to the old app.
+          {$t('ui.youReSignedInAlreadyChanging')}
         </p>
       {/if}
     </div>

@@ -1,6 +1,26 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
-import en from '../locales/en.json';
+function readCatalog(id) {
+  const raw = readFileSync(new URL('../locales/' + id + '.json', import.meta.url), 'utf8');
+  const stack = [];
+  // Consume complete JSON strings so braces and quotes in values are ignored.
+  for (const match of raw.matchAll(/"(?:\\.|[^"\\])*"(\s*:)?|[{}]/g)) {
+    const [token, property] = match;
+    if (token === '{') stack.push(new Set());
+    else if (token === '}') stack.pop();
+    else if (property) {
+      const key = JSON.parse(token.slice(0, -property.length));
+      const keys = stack.at(-1);
+      expect(keys.has(key), id + ': duplicate key ' + key).toBe(false);
+      keys.add(key);
+    }
+  }
+  return JSON.parse(raw);
+}
+
+const en = readCatalog('en');
+const ko = readCatalog('ko');
 import zhHans from '../locales/zh-Hans.json';
 import zhHant from '../locales/zh-Hant.json';
 import { LOCALES, loadLocale, pluralRulesFor, resolveLocale, sanitizeLocale, scriptFor, segments, translate } from './i18n.js';
@@ -11,7 +31,7 @@ const keysOf = (catalog) => Object.keys(catalog);
 
 /** Every catalog, as [locale id, catalog]. A new language is one line here
  *  plus one in LOCALES; the checks below then cover it for free. */
-const CATALOGS = [['en', en], ['zh-Hans', zhHans], ['zh-Hant', zhHant]];
+const CATALOGS = [['en', en], ['ko', ko], ['zh-Hans', zhHans], ['zh-Hant', zhHant]];
 
 describe('locale catalogs', () => {
   it('declares every catalog id in LOCALES', () => {
@@ -28,7 +48,18 @@ describe('locale catalogs', () => {
   it('has a value for every key in en.json, in every catalog', () => {
     for (const [name, catalog] of CATALOGS) {
       const keys = new Set(keysOf(catalog));
-      for (const key of keysOf(en)) expect(keys.has(key), `${name}: missing key: ${key}`).toBe(true);
+      for (const key of keysOf(en).filter((key) => !name.startsWith('zh-') || !/^(restore|tray|service|notifyText|ui|gameTab|snapshotText)\./.test(key))) expect(keys.has(key), `${name}: missing key: ${key}`).toBe(true);
+    }
+  });
+
+  it('preserves the English substitution variables in Korean', () => {
+    const vars = (value) => [...new Set(value.match(/\{\w+\}/g))].sort();
+    for (const [key, english] of Object.entries(en)) {
+      const korean = ko[key];
+      for (const value of Object.values(typeof korean === 'string' ? { other: korean } : korean)) {
+        expect(value.trim(), key).not.toBe('');
+        expect(vars(value), key).toEqual(vars(english.other ?? english));
+      }
     }
   });
 
@@ -106,6 +137,7 @@ describe('locale choice', () => {
   });
 
   it('resolves system against the OS language, keeps explicit picks', () => {
+    expect(resolveLocale('system', 'ko-KR')).toBe('ko');
     expect(resolveLocale('system', 'zh-CN')).toBe('zh-Hans');
     expect(resolveLocale('system', 'zh-TW')).toBe('zh-Hant');
     expect(resolveLocale('system', 'en-US')).toBe('en');

@@ -1,4 +1,5 @@
 <script>
+  import { t } from '../../lib/i18n.js';
   // Every game with snapshots in the cloud, as tiles — and every tracked game
   // with none there yet, so it can be sent up. Click one to restore, delete
   // or upload its snapshots. Fires `close`.
@@ -142,15 +143,15 @@
   const tabOptions = [['all', 'All'], ['cloud', 'In cloud'], ['local', 'Not uploaded']];
 </script>
 
-<Modal title="Cloud snapshots" icon={Cloud} onClose={close}>
+<Modal title="{$t('ui.cloudSnapshots')}" icon={Cloud} onClose={close}>
   <svelte:fragment slot="sub">
     {#if browsing}
-      Reading cloud storage…
+      {$t('ui.readingCloudStorage')}
     {:else if cloudGames}
       {cloudGames.length} game{cloudGames.length === 1 ? '' : 's'} · {totals.snaps}
       snapshot{totals.snaps === 1 ? '' : 's'} · {fmtSize(totals.size)} in the cloud
     {:else}
-      Could not read cloud storage
+      {$t('ui.couldNotReadCloudStorage')}
     {/if}
   </svelte:fragment>
   <svelte:fragment slot="actions">
@@ -160,18 +161,18 @@
   </svelte:fragment>
 
   {#if browsing && !cloudGames}
-    <ModalLoading>Listing snapshots from your provider…</ModalLoading>
+    <ModalLoading>{$t('ui.listingSnapshotsFromYourProvider')}</ModalLoading>
   {:else if cloudGames && detail}
     <!-- drill-in: one game's cloud snapshots -->
     <div class="detail-head">
-      <button class="btn small" on:click={() => (detailId = null)}><ArrowLeft size={14} />Back</button>
+      <button class="btn small" on:click={() => (detailId = null)}><ArrowLeft size={14} />{$t('ui.back')}</button>
       <div class="detail-title">
         <strong>{detail.name}</strong>
         <span class="quiet">
           {#if detail.cloud}
             {detail.cloud.count} snapshot{detail.cloud.count === 1 ? '' : 's'} · {fmtSize(detail.cloud.totalSize)} in the cloud
           {:else}
-            nothing in the cloud yet
+            {$t('ui.nothingInTheCloudYet')}
           {/if}
         </span>
       </div>
@@ -184,10 +185,10 @@
     {#if uploading}
       <ProgressBar done={uploadProg?.done ?? 0} total={uploadProg?.total ?? 0}>
         {#if uploadProg && uploadProg.total > 0}
-          Uploading {Math.min(uploadProg.done + 1, uploadProg.total)} of {uploadProg.total}
+          {$t('ui.uploading')} {Math.min(uploadProg.done + 1, uploadProg.total)} of {uploadProg.total}
           {#if uploadProg.current}&nbsp;— <code>{uploadProg.current}</code>{/if}
         {:else}
-          Checking what needs uploading…
+          {$t('ui.checkingWhatNeedsUploading')}
         {/if}
       </ProgressBar>
     {/if}
@@ -205,34 +206,34 @@
               title={detail.tracked ? 'Download and restore this snapshot' : 'Track this game first to restore'}
               on:click={() => restoreCloud(detail.id, f)}
             >
-              Restore
+              {$t('restore.apply')}
             </button>
             <button
               class="btn small danger"
               disabled={$busy}
-              title="Delete from the cloud (local snapshots are kept)"
+              title="{$t('ui.deleteFromTheCloudLocalSnapshots')}"
               on:click={() => deleteCloud(detail.cloud, f)}
             >
-              Delete
+              {$t('common.delete')}
             </button>
           </div>
         {/each}
       {:else}
         <div class="empty-state">
           <div class="empty-icon"><Cloud size={36} strokeWidth={1.5} /></div>
-          <p>No cloud snapshots for this game yet.</p>
-          <p class="quiet">Use <strong>Upload local snapshots</strong> above to push them up.</p>
+          <p>{$t('ui.noCloudSnapshotsForThisGame')}</p>
+          <p class="quiet">Use <strong>{$t('ui.uploadLocalSnapshots')}</strong> above to push them up.</p>
         </div>
       {/if}
     </div>
     <ModalFoot>
-      <span class="quiet">Deleting only removes the cloud copy — snapshots on your devices stay.</span>
-      <button class="btn" on:click={close}>Close</button>
+      <span class="quiet">{$t('ui.deletingOnlyRemovesTheCloudCopy')}</span>
+      <button class="btn" on:click={close}>{$t('common.close')}</button>
     </ModalFoot>
   {:else if cloudGames}
     <!-- tile grid -->
     <div class="toolbar">
-      <SearchInput placeholder="Filter by name…" bind:value={filter} />
+      <SearchInput placeholder="{$t('ui.filterByName')}" bind:value={filter} />
       <FilterTabs options={tabOptions} counts={tabCounts} bind:value={tab} />
     </div>
 
@@ -264,8 +265,8 @@
     </div>
 
     <ModalFoot>
-      <span class="quiet">Click a game to browse, restore, delete, or upload its snapshots.</span>
-      <button class="btn" on:click={close}>Close</button>
+      <span class="quiet">{$t('ui.clickAGameToBrowseRestore')}</span>
+      <button class="btn" on:click={close}>{$t('common.close')}</button>
     </ModalFoot>
   {/if}
 </Modal>

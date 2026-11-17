@@ -1,4 +1,5 @@
 <script>
+  import { t } from '../../lib/i18n.js';
   // Files that shouldn't sync: a pattern box, and a list of what is actually
   // in the game's folders to tick instead.
   //
@@ -82,11 +83,9 @@
 </script>
 
 <div class="section">
-  <h4>Files that shouldn't sync</h4>
+  <h4>{$t('ui.filesThatShouldnTSync')}</h4>
   <p class="hint">
-    Some games keep device-specific settings in the same folder as the save, and copying
-    those to another machine can break the game there. List them here and they stay put:
-    never sent, never received, never deleted by a sync.
+    {$t('ui.someGamesKeepDeviceSpecificSettings')}
   </p>
   <textarea
     class="box"
@@ -102,13 +101,13 @@
     doesn't matter. Set the same list on your other devices; each one applies its own.
   </span>
   <span class="hint">
-    <strong>Snapshots still capture these files</strong>, so a restore brings them back —
+    <strong>{$t('ui.snapshotsStillCaptureTheseFiles')}</strong>, so a restore brings them back —
     excluding something stops it travelling, it never stops it being backed up.
   </span>
 
   <div class="picker-head">
     <button class="btn small" on:click={togglePicker}>
-      <Chevron open={showFiles} /> Pick from your save folder
+      <Chevron open={showFiles} /> {$t('ui.pickFromYourSaveFolder')}
     </button>
     {#if showFiles && saveFiles}
       <span class="hint picker-count">
@@ -122,9 +121,9 @@
     {#if filesError}
       <p class="hint err">{filesError}</p>
     {:else if !saveFiles}
-      <p class="hint"><Spinner size={13} /> Reading the save folder…</p>
+      <p class="hint"><Spinner size={13} /> {$t('ui.readingTheSaveFolder')}</p>
     {:else if saveFiles.length === 0}
-      <p class="hint">This game's folders are empty, so there is nothing to pick yet.</p>
+      <p class="hint">{$t('ui.thisGameSFoldersAreEmpty')}</p>
     {:else}
       <div class="picker">
         {#each saveFiles as f (f.location + '/' + f.path)}

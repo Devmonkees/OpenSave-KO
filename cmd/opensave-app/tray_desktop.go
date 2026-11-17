@@ -55,10 +55,10 @@ var trayPauseChoices = []struct {
 	label string
 	d     time.Duration
 }{
-	{"For 15 minutes", 15 * time.Minute},
-	{"For 1 hour", time.Hour},
-	{"For 3 hours", 3 * time.Hour},
-	{"Until I resume", 0},
+	{"pause15", 15 * time.Minute},
+	{"pause60", time.Hour},
+	{"pause180", 3 * time.Hour},
+	{"pauseManual", 0},
 }
 
 // startTray runs the system tray in its own goroutine.
@@ -71,42 +71,67 @@ func (a *App) startTray() {
 	go systray.Run(func() {
 		systray.SetIcon(trayIconBytes())
 		systray.SetTitle("OpenSave")
-		systray.SetTooltip("OpenSave — game save sync")
+		catalog := a.trayCatalog()
 
-		statusItem := systray.AddMenuItem("Starting…", "Where your saves stand")
+		statusItem := systray.AddMenuItem(catalog.label("starting"), catalog.label("statusHint"))
 		statusItem.Disable()
-		recentMenu := systray.AddMenuItem("Recent activity", "The last few things that happened")
+		recentMenu := systray.AddMenuItem(catalog.label("recent"), catalog.label("recentHint"))
 		recentItems := make([]*systray.MenuItem, trayRecentLines)
 		for i := range recentItems {
 			recentItems[i] = recentMenu.AddSubMenuItem("", "")
 			recentItems[i].Disable()
 			recentItems[i].Hide()
 		}
-		activityItem := recentMenu.AddSubMenuItem("Open Activity", "See everything that happened")
+		activityItem := recentMenu.AddSubMenuItem(catalog.label("activity"), catalog.label("activityHint"))
 		systray.AddSeparator()
 
-		openItem := systray.AddMenuItem("Open OpenSave", "Show the OpenSave window")
-		syncItem := systray.AddMenuItem("Sync all games", "Sync every tracked game now")
-		snapshotItem := systray.AddMenuItem("Snapshot every game now", "Take a snapshot of every tracked game")
-		pauseMenu := systray.AddMenuItem("Pause syncing", "Stop syncing for a while; snapshots are still taken")
+		openItem := systray.AddMenuItem(catalog.label("open"), catalog.label("openHint"))
+		syncItem := systray.AddMenuItem(catalog.label("sync"), catalog.label("syncHint"))
+		snapshotItem := systray.AddMenuItem(catalog.label("snapshot"), catalog.label("snapshotHint"))
+		pauseMenu := systray.AddMenuItem(catalog.label("pause"), catalog.label("pauseHint"))
 		pauseItems := make([]*systray.MenuItem, len(trayPauseChoices))
 		for i, c := range trayPauseChoices {
-			pauseItems[i] = pauseMenu.AddSubMenuItem(c.label, "")
+			pauseItems[i] = pauseMenu.AddSubMenuItem(catalog.label(c.label), "")
 		}
-		resumeItem := systray.AddMenuItem("Resume syncing", "Start syncing again and catch up")
+		resumeItem := systray.AddMenuItem(catalog.label("resume"), catalog.label("resumeHint"))
 		resumeItem.Hide()
 		systray.AddSeparator()
-		quitItem := systray.AddMenuItem("Quit", "Stop syncing and exit")
+		quitItem := systray.AddMenuItem(catalog.label("quit"), catalog.label("quitHint"))
 
 		trayReady.Store(true)
 
+		menuCatalog := catalog.label("open")
 		refresh := func() {
+			catalog = a.trayCatalog()
+			if title := catalog.label("open"); title != menuCatalog {
+				menuCatalog = title
+				for _, entry := range []struct {
+					item           *systray.MenuItem
+					title, tooltip string
+				}{
+					{statusItem, "starting", "statusHint"},
+					{recentMenu, "recent", "recentHint"},
+					{activityItem, "activity", "activityHint"},
+					{openItem, "open", "openHint"},
+					{syncItem, "sync", "syncHint"},
+					{snapshotItem, "snapshot", "snapshotHint"},
+					{pauseMenu, "pause", "pauseHint"},
+					{resumeItem, "resume", "resumeHint"},
+					{quitItem, "quit", "quitHint"},
+				} {
+					entry.item.SetTitle(catalog.label(entry.title))
+					entry.item.SetTooltip(catalog.label(entry.tooltip))
+				}
+				for i, item := range pauseItems {
+					item.SetTitle(catalog.label(trayPauseChoices[i].label))
+				}
+			}
 			if a.daemon == nil {
 				return
 			}
 			facts := a.trayFacts()
-			statusItem.SetTitle(trayStatus(facts))
-			systray.SetTooltip("OpenSave — " + trayStatus(facts))
+			statusItem.SetTitle(trayStatus(facts, catalog))
+			systray.SetTooltip("OpenSave — " + trayStatus(facts, catalog))
 			lines := trayRecent(a.daemon.Log.History(), trayRecentLines)
 			for i, item := range recentItems {
 				if i < len(lines) {
@@ -155,6 +180,8 @@ func (a *App) startTray() {
 			refresh()
 			for {
 				select {
+				case <-a.trayRefresh:
+					refresh()
 				case <-ticker.C:
 					refresh()
 				case <-prompt:

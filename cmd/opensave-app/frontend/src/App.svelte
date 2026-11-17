@@ -90,6 +90,7 @@
   // The document language follows the chosen locale ('system' resolved); a
   // wrong lang makes Windows render some Han characters with Japanese shapes.
   $: document.documentElement.lang = resolveLocale($locale);
+  $: native.setDesktopLocale(resolveLocale($locale))?.catch(console.error);
   // The highlight on what the keyboard or the controller has selected.
   onMount(() => startFocusRing());
   onMount(() =>

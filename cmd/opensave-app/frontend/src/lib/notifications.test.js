@@ -1,3 +1,4 @@
+import { locale } from './i18n.js';
 import { describe, expect, it } from 'vitest';
 import {
   arrivalMessage,
@@ -152,3 +153,5 @@ describe('clearing the bell', () => {
     expect(() => saveCleared({ before: 1, ids: [] }, { setItem: () => { throw new Error('no'); } })).not.toThrow();
   });
 });
+
+locale.set('en');

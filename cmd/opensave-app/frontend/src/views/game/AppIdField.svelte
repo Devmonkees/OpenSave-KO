@@ -1,4 +1,5 @@
 <script>
+  import { t } from '../../lib/i18n.js';
   // The Steam App ID box, which says what Steam calls the number as it is
   // typed — so "did I get the number right?" is answered before Save rather
   // than by whether a cover eventually appears. A cover that does not appear
@@ -58,7 +59,7 @@
   <label for="c-appid">Steam App ID</label>
   <input id="c-appid" placeholder="e.g. 1091500" bind:value />
   <span class="hint">
-    The number in the game's Steam store URL. Used to launch it and fetch its cover art.
+    {$t('ui.theNumberInTheGameS')}
     <MoreInfo>
       With “Match games by Steam App ID” turned on in Settings, it also lets this game sync
       with a copy tracked under a different name on another device. Filled in automatically
@@ -68,7 +69,7 @@
   </span>
   {#if error}<span class="hint hint-error">{error}</span>{/if}
   {#if check?.state === 'checking'}
-    <span class="hint appid-check">Checking with Steam…</span>
+    <span class="hint appid-check">{$t('ui.checkingWithSteam')}</span>
   {:else if check?.state === 'found'}
     <span class="hint appid-check ok"><CircleCheck size={13} class="inline-icon" />Steam: <strong>{check.name}</strong></span>
   {:else if check?.state === 'unknown'}
@@ -79,8 +80,7 @@
     </span>
   {:else if check?.state === 'unreachable'}
     <span class="hint appid-check warn">
-      Couldn't reach Steam to check this number. If Steam's store or CDN is blocked on
-      this network, cover art won't load here either — the ID itself may well be right.
+      {$t('ui.couldnTReachSteamToCheck')}
     </span>
   {/if}
 </div>

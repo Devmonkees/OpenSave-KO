@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -26,40 +25,40 @@ type trayFacts struct {
 // trayStatus is the tray's first line: the one thing most worth knowing
 // without opening the window. A decision waiting on you comes first, then a
 // pause (which you might have forgotten), then what is moving.
-func trayStatus(f trayFacts) string {
+func trayStatus(f trayFacts, catalog trayCatalog) string {
 	switch {
 	case f.Conflicts == 1:
-		return "1 game needs a decision"
+		return catalog.label("conflictOne")
 	case f.Conflicts > 1:
-		return fmt.Sprintf("%d games need a decision", f.Conflicts)
+		return catalog.label("conflictMany", "n", f.Conflicts)
 	case f.Pause.Paused && f.Pause.UntilRestart:
-		return "Syncing paused until you resume"
+		return catalog.label("paused")
 	case f.Pause.Paused:
-		return "Syncing paused · " + minutesLeft(f.Pause.RemainingSeconds)
+		return catalog.label("pausedUntil", "time", minutesLeft(f.Pause.RemainingSeconds, catalog))
 	case len(f.Syncing) == 1:
-		return "Syncing " + f.Syncing[0] + "…"
+		return catalog.label("syncOne", "game", f.Syncing[0])
 	case len(f.Syncing) > 1:
-		return fmt.Sprintf("Syncing %d games…", len(f.Syncing))
+		return catalog.label("syncMany", "n", len(f.Syncing))
 	case f.Games == 0:
-		return "No games tracked yet"
+		return catalog.label("empty")
 	case f.Games == 1:
-		return "Watching 1 game"
+		return catalog.label("watchOne")
 	default:
-		return fmt.Sprintf("Watching %d games", f.Games)
+		return catalog.label("watchMany", "n", f.Games)
 	}
 }
 
-func minutesLeft(seconds int64) string {
-	m := (time.Duration(seconds)*time.Second + time.Minute - 1) / time.Minute
+func minutesLeft(seconds int64, catalog trayCatalog) string {
+	m := int64((time.Duration(seconds)*time.Second + time.Minute - 1) / time.Minute)
 	switch {
 	case m >= 60 && m%60 == 0:
-		return fmt.Sprintf("%dh left", m/60)
+		return catalog.label("hours", "h", m/60)
 	case m >= 60:
-		return fmt.Sprintf("%dh %dm left", m/60, m%60)
+		return catalog.label("hoursMinutes", "h", m/60, "m", m%60)
 	case m <= 1:
-		return "under a minute left"
+		return catalog.label("underMinute")
 	default:
-		return fmt.Sprintf("%dm left", m)
+		return catalog.label("minutes", "m", m)
 	}
 }
 

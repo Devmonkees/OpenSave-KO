@@ -1,4 +1,5 @@
 <script>
+  import { t } from '../lib/i18n.js';
   import { settings, wanRoom, peers, toast } from '../lib/stores.js';
   import { api } from '../lib/api.js';
   import { generateRoomCode } from '../lib/roomcode.js';
@@ -233,7 +234,7 @@
         <input id="room-code" placeholder="e.g. k7m2-9xqp-4wnt" bind:value={codeDraft} />
         <button class="btn icon" on:click={randomCode} title="Make up a random code" aria-label="Random code"><Dices size={17} /></button>
         {#if $wanRoom?.enabled}
-          <button class="btn" on:click={copyCode}>Copy</button>
+          <button class="btn" on:click={copyCode}>{$t('ui.copy')}</button>
         {/if}
       </div>
     </div>

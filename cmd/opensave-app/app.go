@@ -10,6 +10,7 @@ import (
 	goruntime "runtime"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	opensave "github.com/opensave/opensave"
@@ -42,12 +43,14 @@ type App struct {
 	// window loads while startup is still running, and what startup sets —
 	// the address, the boot error, the version updated from — is read only
 	// after this, never while it is being written (see started).
-	ready chan struct{}
+	ready         chan struct{}
+	koreanDesktop atomic.Bool
+	trayRefresh   chan struct{}
 }
 
 // NewApp creates the App shell (daemon boots in startup).
 func NewApp() *App {
-	return &App{ready: make(chan struct{})}
+	return &App{ready: make(chan struct{}), trayRefresh: make(chan struct{}, 1)}
 }
 
 // startupWait is how long the window waits for startup before saying it is

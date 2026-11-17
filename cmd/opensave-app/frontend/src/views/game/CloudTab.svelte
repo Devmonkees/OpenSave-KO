@@ -1,4 +1,5 @@
 <script>
+  import { t } from '../../lib/i18n.js';
   // This game's snapshots in the cloud backup: restore one, or send up the
   // ones that are only here.
   import { navigate, toast, askConfirm, settings } from '../../lib/stores.js';
@@ -49,24 +50,24 @@
   <div class="head">
     <div>
       <h3 class="with-icon"><Cloud size={18} /> Cloud snapshots for {game.name}</h3>
-      <p class="sub">Snapshots backed up to your configured cloud provider.</p>
+      <p class="sub">{$t('ui.snapshotsBackedUpToYourConfigured')}</p>
     </div>
     <div class="actions">
-      <button class="btn small" disabled={$busy} on:click={load}><RefreshCw size={13} />Refresh</button>
-      <button class="btn small primary" disabled={$busy} on:click={upload}><Upload size={13} />Upload local snapshots</button>
+      <button class="btn small" disabled={$busy} on:click={load}><RefreshCw size={13} />{$t('ui.refresh')}</button>
+      <button class="btn small primary" disabled={$busy} on:click={upload}><Upload size={13} />{$t('ui.uploadLocalSnapshots')}</button>
     </div>
   </div>
 
   {#if loading}
-    <div class="quiet-block"><Spinner size={13} /> Loading cloud snapshots…</div>
+    <div class="quiet-block"><Spinner size={13} /> {$t('ui.loadingCloudSnapshots')}</div>
   {:else if !snaps || snaps.length === 0}
     <div class="quiet-block">
-      <p>No cloud snapshots for this game yet.</p>
+      <p>{$t('ui.noCloudSnapshotsForThisGame')}</p>
       {#if $settings?.cloudSync?.ready}
-        <p class="hint">New snapshots are copied up as they are taken. “Upload local snapshots” sends the ones from before.</p>
+        <p class="hint">{$t('ui.newSnapshotsAreCopiedUpAs')}</p>
       {:else}
         <p class="hint">
-          Set up a provider in <button class="linklike" on:click={() => navigate('cloud')}>Cloud Backup</button>,
+          Set up a provider in <button class="linklike" on:click={() => navigate('cloud')}>{$t('home.cloudBackup')}</button>,
           then use “Upload local snapshots”.
         </p>
       {/if}
@@ -74,7 +75,7 @@
   {:else}
     <table>
       <thead>
-        <tr><th>Branch</th><th>Date</th><th>Size</th><th></th></tr>
+        <tr><th>{$t('ui.branch')}</th><th>{$t('ui.date')}</th><th>{$t('ui.size')}</th><th></th></tr>
       </thead>
       <tbody>
         {#each snaps as snap (snap.name)}
@@ -83,7 +84,7 @@
             <td class="mono">{new Date(snap.createdTime).toLocaleString()}</td>
             <td class="mono">{fmtSize(snap.sizeBytes)}</td>
             <td class="right">
-              <button class="btn small primary" disabled={$busy} on:click={() => restore(snap)}>Restore</button>
+              <button class="btn small primary" disabled={$busy} on:click={() => restore(snap)}>{$t('restore.apply')}</button>
             </td>
           </tr>
         {/each}

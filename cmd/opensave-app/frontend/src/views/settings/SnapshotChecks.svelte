@@ -1,4 +1,5 @@
 <script>
+  import { t } from '../../lib/i18n.js';
   // Whether every snapshot can still be restored: when they were last read
   // back, what was found, what to do about what was found, and how often it
   // happens by itself. See daemon/verify.go and daemon/repair.go.
@@ -141,12 +142,12 @@
       {:else if summary.lastCheckedMs}
         <FileCheck size={18} />
         <span>
-          <strong>Every snapshot checked can be restored.</strong>
+          <strong>{$t('ui.everySnapshotCheckedCanBeRestored')}</strong>
           {summary.checked} of {summary.total} checked, last {timeAgo(iso(summary.lastCheckedMs))}.
         </span>
       {:else}
         <FileCheck size={18} />
-        <span>Not checked yet.</span>
+        <span>{$t('ui.notCheckedYet')}</span>
       {/if}
     </div>
 
@@ -190,10 +191,10 @@
   <div class="schedule">
     <label class="toggle">
       <input type="checkbox" checked={auto} on:change={(e) => setEvery(e.currentTarget.checked ? lastEvery : 0)} />
-      Check automatically
+      {$t('ui.checkAutomatically')}
     </label>
     {#if auto}
-      <select value={every} on:change={(e) => setEvery(Number(e.currentTarget.value))} aria-label="How often">
+      <select value={every} on:change={(e) => setEvery(Number(e.currentTarget.value))} aria-label="{$t('ui.howOften')}">
         {#each EVERY as [days, label]}
           <option value={days}>{label}</option>
         {/each}
@@ -201,13 +202,13 @@
       </select>
       <span class="hint">{nextAt ? `Next ${inWords(nextAt)}.` : 'The first a little after OpenSave starts.'} Anything the cloud still has whole is put back as it's found.</span>
     {:else}
-      <span class="hint">Snapshots are still checked before they're restored.</span>
+      <span class="hint">{$t('ui.snapshotsAreStillCheckedBeforeThey')}</span>
     {/if}
   </div>
 
   <div class="actions">
     <button class="btn small" disabled={checking} on:click={checkNow}>{checking ? 'Checking…' : 'Check every snapshot now'}</button>
-    <span class="hint">Each is read back in full and every file compared with its checksum. A snapshot is also checked before it is restored.</span>
+    <span class="hint">{$t('ui.eachIsReadBackInFull')}</span>
   </div>
 </div>
 

@@ -107,15 +107,15 @@
     {/if}
   </div>
   <div class="fields">
-    <h3>Launch &amp; sync configuration</h3>
+    <h3>{$t('ui.launchSyncConfiguration')}</h3>
     <div class="field">
-      <label for="c-savepath">Save folder</label>
+      <label for="c-savepath">{$t('home.findGame.saveFolder')}</label>
       <div class="path-row">
-        <input id="c-savepath" placeholder="Folder holding this game's saves" bind:value={cfg.savePath} />
-        <button class="btn" on:click={browseSavePath}>Browse</button>
+        <input id="c-savepath" placeholder="{$t('ui.folderHoldingThisGameSSaves')}" bind:value={cfg.savePath} />
+        <button class="btn" on:click={browseSavePath}>{$t('settings.storage.browse')}</button>
       </div>
       <span class="hint">
-        The folder OpenSave treats as this game's save.
+        {$t('ui.theFolderOpensaveTreatsAsThis')}
         <MoreInfo>
           Files sync by their position <em>inside</em> this folder, so each device can point at
           a different path and still end up with the same files — useful when a game keeps saves
@@ -126,44 +126,42 @@
       </span>
       {#if savePathChange(game.savePath, cfg.savePath)}
         <span class="hint hint-warn">
-          Not saved yet. The old folder keeps its files but stops syncing and being
-          snapshotted.
+          {$t('ui.notSavedYetTheOldFolder')}
         </span>
       {/if}
     </div>
     <AppIdField bind:value={cfg.appId} error={appIdError} />
     <div class="field">
-      <label for="c-exe">Executable path</label>
+      <label for="c-exe">{$t('ui.executablePath')}</label>
       <div class="path-row">
-        <input id="c-exe" placeholder="Browse to the game .exe" bind:value={cfg.exePath} />
-        <button class="btn" on:click={browseExe}>Browse</button>
+        <input id="c-exe" placeholder="{$t('ui.browseToTheGameExe')}" bind:value={cfg.exePath} />
+        <button class="btn" on:click={browseExe}>{$t('settings.storage.browse')}</button>
       </div>
       <span class="hint">
-        Launch starts this, even for a Steam game. Leave it empty to launch through Steam.
+        {$t('ui.launchStartsThisEvenForA')}
       </span>
     </div>
     <div class="field">
-      <label for="c-cover">Custom cover image URL</label>
-      <input id="c-cover" placeholder="https://…  (great for emulator games)" bind:value={cfg.coverUrl} />
-      <span class="hint">Leave blank to auto-use Steam art from the App ID. Paste any image URL for emulators.</span>
+      <label for="c-cover">{$t('ui.customCoverImageUrl')}</label>
+      <input id="c-cover" placeholder="{$t('ui.httpsGreatForEmulatorGames')}" bind:value={cfg.coverUrl} />
+      <span class="hint">{$t('ui.leaveBlankToAutoUseSteam')}</span>
     </div>
     <label class="check">
       <input type="checkbox" bind:checked={cfg.autoSync} />
-      Auto-sync saves when changes are detected
+      {$t('ui.autoSyncSavesWhenChangesAre')}
     </label>
     <div class="field" style="margin-top: 12px;">
-      <label for="c-max">Automatic snapshot limit</label>
+      <label for="c-max">{$t('ui.automaticSnapshotLimit')}</label>
       <input id="c-max" type="number" min="0" bind:value={cfg.maxSnapshots} />
       <span class="hint">
         Max <em>automatic</em> snapshots kept per branch (0 = unlimited). Oldest are pruned first.
       </span>
     </div>
     <div class="field">
-      <label for="c-max-manual">Manual snapshot limit</label>
+      <label for="c-max-manual">{$t('ui.manualSnapshotLimit')}</label>
       <input id="c-max-manual" type="number" min="0" bind:value={cfg.maxManualSnapshots} />
       <span class="hint">
-        Snapshots you took yourself get their own budget, so a game that auto-saves often
-        can't push them out. <strong>0 = keep forever</strong> (the default).
+        {$t('ui.snapshotsYouTookYourselfGetTheir')} <strong>{$t('settings.storage.keepForever')}</strong> {$t('ui.theDefault')}
       </span>
     </div>
     {#if deviceSettings.length > 0}
@@ -184,7 +182,7 @@
     <SyncIgnoreEditor {game} bind:value={cfg.syncIgnore} severalFolders={locations.length > 0} />
     <SaveLocations {game} {runner} bind:locations />
     <div class="save">
-      <button class="btn primary" disabled={$busy} on:click={save}>Save configuration</button>
+      <button class="btn primary" disabled={$busy} on:click={save}>{$t('ui.saveConfiguration')}</button>
     </div>
   </div>
 </div>

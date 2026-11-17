@@ -1,3 +1,6 @@
+import { get } from 'svelte/store';
+import { locale, resolveLocale, t } from './i18n.js';
+
 // How a snapshot is described in the list: when, and why it exists.
 //
 // The list used to title each one with its ID — snap_1790235804433 — which is
@@ -19,7 +22,7 @@ const dateTimeFmt = { day: 'numeric', month: 'short', hour: 'numeric', minute: '
 export function whenLabel(date, now = new Date()) {
   const d = date instanceof Date ? date : new Date(date);
   if (Number.isNaN(d.getTime())) return String(date);
-  return sameDay(d, now) ? d.toLocaleTimeString(undefined, timeFmt) : d.toLocaleString(undefined, dateTimeFmt);
+  return sameDay(d, now) ? d.toLocaleTimeString(resolveLocale(get(locale)), timeFmt) : d.toLocaleString(resolveLocale(get(locale)), dateTimeFmt);
 }
 
 function sameDay(a, b) {
@@ -27,13 +30,13 @@ function sameDay(a, b) {
 }
 
 /** "Today", "Yesterday", or the date. */
-export function dayLabel(date, now = new Date()) {
+export function dayLabel(date, now = new Date(), tr = get(t)) {
   const d = date instanceof Date ? date : new Date(date);
-  if (sameDay(d, now)) return 'Today';
+  if (sameDay(d, now)) return tr('snapshotText.today');
   const y = new Date(now);
   y.setDate(y.getDate() - 1);
-  if (sameDay(d, y)) return 'Yesterday';
-  return d.toLocaleDateString(undefined, {
+  if (sameDay(d, y)) return tr('snapshotText.yesterday');
+  return d.toLocaleDateString(resolveLocale(get(locale)), {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -57,17 +60,17 @@ const safetyPattern = /^(before|pre-rollback|safety|auto backup before|this devi
 // The daemon's own wording for the copies it keeps, said plainly. Anything
 // not listed is shown as written.
 const plainTitles = [
-  [/^pre-rollback safety restore point \(before restoring (.+)\)$/i, (m) => `Before restoring ${m[1]}`],
-  [/^before sync replaced local files$/i, () => 'Before a sync replaced it'],
-  [/^safety snapshot before restoring file "(.+)" from (.+)$/i, (m) => `Before putting back ${m[1]} from ${m[2]}`],
-  [/^auto backup before switching to branch "(.+)"$/i, (m) => `Before switching to ${m[1]}`],
-  [/^branch "(.+)" created from "(.+)"$/i, (m) => `Start of ${m[1]}, copied from ${m[2]}`]
+  [/^pre-rollback safety restore point \(before restoring (.+)\)$/i, (m, tr) => tr('snapshotText.rollbackBackup', { snapshot: m[1] })],
+  [/^before sync replaced local files$/i, (_, tr) => tr('snapshotText.syncBackup')],
+  [/^safety snapshot before restoring file "(.+)" from (.+)$/i, (m, tr) => tr('snapshotText.fileBackup', { path: m[1], snapshot: m[2] })],
+  [/^auto backup before switching to branch "(.+)"$/i, (m, tr) => tr('snapshotText.switchBackup', { branch: m[1] })],
+  [/^branch "(.+)" created from "(.+)"$/i, (m, tr) => tr('snapshotText.branchCopy', { branch: m[1], source: m[2] })]
 ];
 
-function plainTitle(comment) {
+function plainTitle(comment, tr) {
   for (const [re, say] of plainTitles) {
     const m = re.exec(comment);
-    if (m) return say(m);
+    if (m) return say(m, tr);
   }
   return capitalise(comment);
 }
@@ -77,31 +80,31 @@ function plainTitle(comment) {
  * @returns {{kind: 'manual'|'auto'|'start'|'safety'|'session'|'other', label: string, title: string}}
  *   `label` is the short tag; `title` the line the row leads with.
  */
-export function snapshotKind(snap, now = new Date()) {
+export function snapshotKind(snap, now = new Date(), tr = get(t)) {
   let comment = humanizeComment(snap.comment ?? '', now).trim();
   // The daemon stores these when no comment was given; they are defaults,
   // not reasons, and read as noise on every row.
   if (/^(auto backup|manual snapshot)$/i.test(comment)) comment = '';
   if (!snap.isSystemAuto) {
-    return { kind: 'manual', label: 'Taken by you', title: comment || 'Snapshot' };
+    return { kind: 'manual', label: tr('snapshotText.manual'), title: comment || tr('snapshotText.snapshot') };
   }
-  if (comment === '') return { kind: 'auto', label: 'Automatic', title: 'Save changed' };
-  if (/^initial snapshot$/i.test(comment)) return { kind: 'start', label: 'Automatic', title: 'When tracking started' };
+  if (comment === '') return { kind: 'auto', label: tr('snapshotText.automatic'), title: tr('snapshotText.saveChanged') };
+  if (/^initial snapshot$/i.test(comment)) return { kind: 'start', label: tr('snapshotText.automatic'), title: tr('snapshotText.trackingStarted') };
   // The save as a play session left it (daemon/sessions.go).
-  if (/^after playing/i.test(comment)) return { kind: 'session', label: 'After playing', title: comment };
+  if (/^after playing/i.test(comment)) return { kind: 'session', label: tr('snapshotText.afterPlaying'), title: comment };
   if (safetyPattern.test(comment)) {
-    return { kind: 'safety', label: 'Safety copy', title: plainTitle(comment) };
+    return { kind: 'safety', label: tr('snapshotText.safety'), title: plainTitle(comment, tr) };
   }
-  return { kind: 'other', label: 'Automatic', title: plainTitle(comment) };
+  return { kind: 'other', label: tr('snapshotText.automatic'), title: plainTitle(comment, tr) };
 }
 
 const capitalise = (s) => (s ? s[0].toUpperCase() + s.slice(1) : s);
 
 /** Snapshots, newest first, in runs by day: [{day, snaps}]. */
-export function groupByDay(snaps, now = new Date()) {
+export function groupByDay(snaps, now = new Date(), tr = get(t)) {
   const groups = [];
   for (const s of snaps) {
-    const day = dayLabel(new Date(s.timestamp), now);
+    const day = dayLabel(new Date(s.timestamp), now, tr);
     const last = groups[groups.length - 1];
     if (last && last.day === day) last.snaps.push(s);
     else groups.push({ day, snaps: [s] });

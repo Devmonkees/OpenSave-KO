@@ -1,4 +1,5 @@
 <script>
+  import { t } from '../../lib/i18n.js';
   // Two snapshots of a game side by side: which files one has that the other
   // does not, and which both have in different versions. Read from the
   // archives' own lists, so it is instant (see snapshot/compare.go).
@@ -46,18 +47,18 @@
     c.change === 'changed' ? `${fmtSize(c.fromSize)} → ${fmtSize(c.toSize)}` : fmtSize(c.change === 'added' ? c.toSize : c.fromSize);
 </script>
 
-<Modal title="Compare snapshots" icon={GitCompareArrows} {onClose} width={640} height="auto" maxHeight="min(80vh, 680px)">
+<Modal title="{$t('ui.compareSnapshots')}" icon={GitCompareArrows} {onClose} width={640} height="auto" maxHeight="min(80vh, 680px)">
   <svelte:fragment slot="sub">{game.name}</svelte:fragment>
   <div class="body">
     <div class="pick">
       <label class="field">
-        <span>From</span>
+        <span>{$t('ui.from')}</span>
         <select bind:value={from}>
           {#each snapshots as s (s.id)}<option value={s.id}>{label(s)}</option>{/each}
         </select>
       </label>
       <label class="field">
-        <span>To</span>
+        <span>{$t('ui.to')}</span>
         <select bind:value={to}>
           {#each snapshots as s (s.id)}<option value={s.id}>{label(s)}</option>{/each}
         </select>
@@ -65,9 +66,9 @@
     </div>
 
     {#if error}
-      <p class="quiet">Couldn't compare them: {error}</p>
+      <p class="quiet">{$t('ui.couldnTCompareThem')} {error}</p>
     {:else if !result}
-      <p class="quiet"><Spinner size={13} /> Comparing…</p>
+      <p class="quiet"><Spinner size={13} /> {$t('ui.comparing')}</p>
     {:else if result.changes.length === 0}
       <p class="quiet">{from === to ? 'The same snapshot.' : `No difference: the same ${result.unchanged} file${result.unchanged === 1 ? '' : 's'} in both.`}</p>
     {:else}

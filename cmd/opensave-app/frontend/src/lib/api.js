@@ -1,5 +1,7 @@
 // REST + WebSocket client for the embedded OpenSave daemon.
 
+import { get } from 'svelte/store';
+import { locale, resolveLocale, t } from './i18n.js';
 import { switchTitleId } from './switchtitle.js';
 
 let baseURL = '';
@@ -10,7 +12,7 @@ export async function initApi() {
   // default daemon port.
   try {
     const info = await window.go.main.App.DaemonAddr();
-    if (info.error) throw new Error(info.error);
+    if (info.error) throw displayServiceError('boot', {}, new Error(info.error));
     baseURL = `http://${info.addr}`;
   } catch (e) {
     if (e.message && !String(e.message).includes('undefined')) throw e;
@@ -55,7 +57,12 @@ async function request(method, path, body) {
     opts.headers['Content-Type'] = 'application/json';
     opts.body = JSON.stringify(body);
   }
-  const res = await fetch(baseURL + path, opts);
+  let res;
+  try {
+    res = await fetch(baseURL + path, opts);
+  } catch (error) {
+    throw displayServiceError('network', {}, error);
+  }
   const text = await res.text().catch(() => '');
   let data = {};
   if (text) {
@@ -69,9 +76,16 @@ async function request(method, path, body) {
     }
   }
   if (!res.ok) {
-    throw new Error(data.error || `${method} ${path} failed (${res.status})`);
+    const status = res.status;
+    const kind = [400, 401, 403, 404, 409].includes(status) ? status : 'http';
+    throw displayServiceError(kind, { status }, new Error(data.error || `${method} ${path} failed (${res.status})`));
   }
   return data;
+}
+
+function displayServiceError(kind, params, cause) {
+  if (resolveLocale(get(locale)) !== 'ko') return cause;
+  return new Error(get(t)('service.' + kind, params), { cause });
 }
 
 function notOpenSave() {
@@ -178,6 +192,7 @@ const FALLBACK_INFO = {
 };
 
 export const native = {
+  setDesktopLocale: (locale) => app()?.SetDesktopLocale?.(locale),
   appInfo: () => app()?.AppInfo?.() ?? Promise.resolve(FALLBACK_INFO),
   checkUpdate: () => app()?.CheckForUpdate?.() ?? Promise.resolve({ available: false }),
   changelog: () => app()?.Changelog?.() ?? Promise.resolve(''),

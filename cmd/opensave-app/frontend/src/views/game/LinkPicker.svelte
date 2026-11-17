@@ -1,4 +1,5 @@
 <script>
+  import { t } from '../../lib/i18n.js';
   // Choosing the game to link, by its cover: the games on this device, and
   // the ones on your other devices, as the library shows them. A name alone
   // was a long list of look-alikes — the same title tracked twice reads the
@@ -29,7 +30,7 @@
 {#if many}
   <label class="search">
     <Search size={14} />
-    <input type="search" placeholder="Find a game…" bind:value={query} aria-label="Find a game to link" />
+    <input type="search" placeholder="{$t('home.library.searchPlaceholder')}" bind:value={query} aria-label="{$t('ui.findAGameToLink')}" />
   </label>
 {/if}
 

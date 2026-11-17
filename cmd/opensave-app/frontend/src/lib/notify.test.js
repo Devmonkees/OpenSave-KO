@@ -1,3 +1,4 @@
+import { locale } from './i18n.js';
 import { describe, expect, it } from 'vitest';
 import { desktopNote, toDesktop, inFront } from './notify.js';
 import { arrivalNote, newGamesNote } from './notifications.js';
@@ -63,3 +64,5 @@ describe('desktop notifications', () => {
     expect(inFront(undefined)).toBe(false);
   });
 });
+
+locale.set('en');

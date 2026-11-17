@@ -1,3 +1,4 @@
+import { locale } from './i18n.js';
 import { describe, expect, it } from 'vitest';
 import { asText, feedByDay, filterEntries, linkGames } from './activity.js';
 
@@ -95,3 +96,5 @@ describe('asText', () => {
     expect(t).toBe('2026-09-24T10:00:00Z WARN    cloud: failed');
   });
 });
+
+locale.set('en');

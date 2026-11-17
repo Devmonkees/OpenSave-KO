@@ -1,3 +1,4 @@
+import { locale } from './i18n.js';
 import { describe, expect, it } from 'vitest';
 import { dayLabel, groupByDay, humanizeComment, snapIdTime, snapshotKind, whenLabel } from './snapshots.js';
 
@@ -19,8 +20,8 @@ describe('snapIdTime', () => {
 
 describe('whenLabel and dayLabel', () => {
   it('gives only the time for today, and the date too otherwise', () => {
-    expect(whenLabel(at(24, 9, 30), now)).toBe(at(24, 9, 30).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }));
-    expect(whenLabel(at(20, 9, 30), now)).toContain(at(20, 9, 30).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }));
+    expect(whenLabel(at(24, 9, 30), now)).toBe(at(24, 9, 30).toLocaleTimeString('en', { hour: 'numeric', minute: '2-digit' }));
+    expect(whenLabel(at(20, 9, 30), now)).toContain(at(20, 9, 30).toLocaleTimeString('en', { hour: 'numeric', minute: '2-digit' }));
     expect(whenLabel(at(20, 9, 30), now)).not.toBe(whenLabel(at(24, 9, 30), now));
   });
   it('names today and yesterday, and dates the rest', () => {
@@ -121,3 +122,5 @@ describe('groupByDay', () => {
     ]);
   });
 });
+
+locale.set('en');

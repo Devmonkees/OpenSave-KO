@@ -28,7 +28,7 @@ func TestTrayStatusSaysTheMostImportantThing(t *testing.T) {
 		{trayFacts{Games: 1}, "Watching 1 game"},
 		{trayFacts{Games: 6}, "Watching 6 games"},
 	} {
-		if got := trayStatus(c.facts); got != c.want {
+		if got := trayStatus(c.facts, englishTray); got != c.want {
 			t.Errorf("%+v: %q, want %q", c.facts, got, c.want)
 		}
 	}

@@ -1,3 +1,4 @@
+import { locale } from './i18n.js';
 import { describe, expect, it } from 'vitest';
 import { recentEvents, spaceUsed } from './overview.js';
 
@@ -48,3 +49,5 @@ describe('spaceUsed', () => {
     expect(spaceUsed({})).toBe(0);
   });
 });
+
+locale.set('en');

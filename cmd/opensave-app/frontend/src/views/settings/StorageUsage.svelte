@@ -1,4 +1,5 @@
 <script>
+  import { t } from '../../lib/i18n.js';
   // Where the space goes: each game's share, the biggest snapshots, free
   // space, and what clean-up would give back — before pressing it.
   import { onMount } from 'svelte';
@@ -77,7 +78,7 @@
 </script>
 
 {#if error}
-  <p class="hint">Couldn't read storage: {error}</p>
+  <p class="hint">{$t('ui.couldnTReadStorage')} {error}</p>
 {:else if !report}
   <div class="skeleton" style="height: 120px"></div>
 {:else}
@@ -88,7 +89,7 @@
     </div>
     <button class="btn small" class:primary={report.reclaimable > 0} disabled={busy || report.reclaimable === 0} on:click={cleanUp}>
       <BrushCleaning size={14} />
-      {#if busy}Cleaning up…{:else if report.reclaimable > 0}Clean up now · frees {fmtSize(report.reclaimable)}{:else}Nothing to clean up{/if}
+      {#if busy}{$t('ui.cleaningUp')}{:else if report.reclaimable > 0}Clean up now · frees {fmtSize(report.reclaimable)}{:else}{$t('ui.nothingToCleanUp')}{/if}
     </button>
   </div>
   {#if report.reclaimable > 0}
@@ -116,7 +117,7 @@
     <ul class="games">
       {#each report.games as g}
         <li>
-          <button class="game" on:click={() => navigate('game', { gameId: g.gameId })} title="Open {g.name}">
+          <button class="game" on:click={() => navigate('game', { gameId: g.gameId })} title="{$t('common.open')} {g.name}">
             <span class="name">{g.name}</span>
             <span class="bar"><span style="width: {Math.max(2, (g.bytes / largest) * 100)}%"></span></span>
             <span class="size">{fmtSize(g.bytes)}</span>
@@ -130,7 +131,7 @@
   {/if}
 
   {#if report.biggest.length}
-    <h4>Biggest snapshots</h4>
+    <h4>{$t('ui.biggestSnapshots')}</h4>
     <ul class="biggest">
       {#each report.biggest as s}
         <li>
@@ -139,8 +140,8 @@
             <span class="name">{s.gameName}</span>
             <span class="meta">{whenLabel(s.timestamp)}{#if s.note}{' · '}{s.note}{/if}</span>
           </span>
-          {#if s.pinned}<span class="pinned"><Pin size={11} />Pinned</span>{/if}
-          <button class="btn small ghost icon" title="Delete this snapshot" aria-label="Delete snapshot" on:click={() => remove(s)}><Trash2 size={14} /></button>
+          {#if s.pinned}<span class="pinned"><Pin size={11} />{$t('ui.pinned')}</span>{/if}
+          <button class="btn small ghost icon" title="{$t('ui.deleteThisSnapshot')}" aria-label="{$t('ui.deleteSnapshot')}" on:click={() => remove(s)}><Trash2 size={14} /></button>
         </li>
       {/each}
     </ul>

@@ -68,7 +68,7 @@
     cloudOffers: $cloudOffers,
     newGames: $newGames,
     update: $availableUpdate
-  });
+  }, $t);
   $: allEvents = [...$exampleEvents, ...happened(items, $games, seenAt, now)];
   // What is shown, and counted on the bell: what has not been cleared.
   $: waiting = notCleared(allWaiting, cleared);
@@ -152,7 +152,7 @@
               <span class="text"><span class="t">{w.title}</span><span class="d">{w.detail}</span></span>
             </button>
             {#if canDismiss(w)}
-              <button class="dismiss" title="Dismiss" aria-label="Dismiss: {w.title}" on:click={() => dismiss(w)}><X size={13} /></button>
+              <button class="dismiss" title="{$t('common.dismiss')}" aria-label="{$t('ui.dismiss')} {w.title}" on:click={() => dismiss(w)}><X size={13} /></button>
             {/if}
             </div>
           {/each}
@@ -176,7 +176,7 @@
               </span>
               {#if e.unread}<span class="dot" aria-label={$t('notifications.unread')}></span>{/if}
             </button>
-            <button class="dismiss" title="Dismiss" aria-label="Dismiss: {e.title}" on:click={() => dismiss(e)}><X size={13} /></button>
+            <button class="dismiss" title="{$t('common.dismiss')}" aria-label="{$t('ui.dismiss')} {e.title}" on:click={() => dismiss(e)}><X size={13} /></button>
             </div>
           {/each}
         {/if}

@@ -14,6 +14,7 @@
 import { writable, derived } from 'svelte/store';
 
 import en from '../locales/en.json';
+import ko from '../locales/ko.json';
 import zhHans from '../locales/zh-Hans.json';
 import zhHant from '../locales/zh-Hant.json';
 
@@ -25,9 +26,9 @@ export const SYSTEM_LOCALE = 'system';
  *  is not the same question as where they are, so `zh-CN` / `zh-TW` / `zh-HK`
  *  and the rest are not offered as separate languages. Each region maps onto
  *  one of the two scripts here instead. */
-export const LOCALES = { en: 'English', 'zh-Hans': '简体中文', 'zh-Hant': '繁體中文' };
+export const LOCALES = { en: 'English', ko: '한국어', 'zh-Hans': '简体中文', 'zh-Hant': '繁體中文' };
 
-const CATALOGS = { en, 'zh-Hans': zhHans, 'zh-Hant': zhHant };
+const CATALOGS = { en, ko, 'zh-Hans': zhHans, 'zh-Hant': zhHant };
 const FALLBACK = 'en';
 const KEY = 'opensave.locale';
 
@@ -77,6 +78,7 @@ export function scriptFor(language) {
 /** 'system' settled against the OS language, or the explicit pick itself. */
 export function resolveLocale(l, language = globalThis.navigator?.language) {
   if (l && l !== SYSTEM_LOCALE) return l;
+  if (/^ko(?:-|$)/i.test(language ?? '')) return 'ko';
   return scriptFor(language) ?? FALLBACK;
 }
 
